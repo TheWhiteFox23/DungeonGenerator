@@ -12,7 +12,7 @@ namespace DungeonGenerator
         static void Main(string[] args)
         {
             DungeonMap map = new DungeonMap(50, 30, 15,1);
-            ImageBuffer buffer = new ImageBuffer();
+            ImageBuffer buffer = new ImageBuffer(256, 256);
             buffer.save();
             map.print();
             Console.ReadKey();

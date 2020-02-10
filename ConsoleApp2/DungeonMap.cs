@@ -43,7 +43,6 @@ namespace DungeonGenerator
             fillRoomMap();
             mapBorders();
             conectRooms();
-
         }
 
         private void fillMap(char wall)
