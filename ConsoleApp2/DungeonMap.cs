@@ -48,14 +48,15 @@ namespace DungeonGenerator
             TimeOfExecutionEnd(watch, "Generating rooms");
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
-            deleteObsolent();
+            printMapRoom();
+            /*deleteObsolent();
             TimeOfExecutionEnd(watch, "Deleting Obsolent");
             fillRoomMap();
             TimeOfExecutionEnd(watch, "Filling Room Map");
             mapBorders();
             TimeOfExecutionEnd(watch, "Maping Borders");
             conectRooms();
-            TimeOfExecutionEnd(watch, "Conecting Rooms");
+            TimeOfExecutionEnd(watch, "Conecting Rooms");*/
             watch.Stop();
         }
 
@@ -336,40 +337,49 @@ namespace DungeonGenerator
 
         private void mapRooms()
         {
-            //create room for every countinuous tile set
+            /*mapRooms method
+             * Purpose of this method is to find every set of continuous floor tiles and set is as the room
+             * Method map all the floor tiles and then find continuous set
+             */
 
-            //list for storing tiles
-            List<string> emptyTiles = new List<string>();
+            //Queue for storing all of the empty foor tiles
+            Queue<string> emptyTiles = new Queue<string>();
 
-            //map all empty tiles 
+            //Mapping empty floor tiles
             for(int i = 0; i< Y-1; i++)
             {
                 for (int j = 0; j < X - 1; j++)
                 {
                     if(dMap[i][j] == empty)
                     {
-                        emptyTiles.Add(i + "." + j);
+                        emptyTiles.Enqueue(i + "." + j);
                     }
                 }
             }
 
-            //maping individual rooms
+            //Searching for continuous floor tiles
             while(emptyTiles.Count() != 0)
             {
-                //roomtiles for individual rooms
-                List<string> roomTiles = new List<string>();
-                //border tiles 
-                List<string> roomBorders = new List<string>();
-                //gettimg valid id
+                //Disctionary of the floortiles of the current room
+                Dictionary<string, int> roomTiles = new Dictionary<string, int>();
+
+                //Distionary of the border tiles of the current room 
+                Dictionary<string, int> roomBorders = new Dictionary<string, int>();
+
+                //Dictionary for tiles that was already marked for check
+                Dictionary<string, int> toCheckDictionary = new Dictionary<string, int>();
+                
+                //Room ID
                 int id = 1;
                 if (room2s.Count != 0) id = room2s.Last().getID() + 1;
 
-                string tile = emptyTiles.Last();
+                //Tiles to check
+                Queue<string> toCheck = new Queue<string>();
 
-                //list for storing surrounding tiles
-                List<string> toCheck = new List<string>();
+                //Add initial tile into the toCheck Queue
+                toCheck.Enqueue(emptyTiles.Peek());
+                toCheckDictionary.Add(emptyTiles.Dequeue(), 0);
 
-                //check the firs tile
 
                 //help array with index shifts
                 int[][] indexShift =
@@ -382,8 +392,7 @@ namespace DungeonGenerator
 
                 do
                 {
-                    toCheck.Remove(tile);
-                    emptyTiles.Remove(tile);
+                    string tile = toCheck.Dequeue(); 
                     for (int i = 0; i < indexShift[0].Length; i++)
                     {
                         int indexX = parseMap(tile)[0] + indexShift[1][i];
@@ -391,18 +400,22 @@ namespace DungeonGenerator
 
                         if (dMap[indexY][indexX] == wall)
                         {
-                            if (!roomBorders.Contains(indexY + "." + indexX) && (indexY > 0 && indexY < Y - 1) && (indexX > 0 && indexX < X - 1))
+                            if (!roomBorders.ContainsKey(indexY + "." + indexX) && (indexY > 0 && indexY < Y - 1) && (indexX > 0 && indexX < X - 1))
                             {
-                                roomBorders.Add(indexY + "." + indexX);
+                                roomBorders.Add(indexY + "." + indexX, 0);
                             }
                         }
                         else if (dMap[indexY][indexX] == empty)
                         {
-                            if (!roomTiles.Contains(indexY + "." + indexX) && !toCheck.Contains(indexY + "." + indexX)) toCheck.Add(indexY + "." + indexX);
+                            if (!roomTiles.ContainsKey(indexY + "." + indexX) && !toCheckDictionary.ContainsKey(indexY + "." + indexX))
+                            {
+                                toCheckDictionary.Add(indexY + "." + indexX, 0);
+                                toCheck.Enqueue(indexY + "." + indexX);
+                            }
                         }
                     }
 
-                    roomTiles.Add(tile);
+                    roomTiles.Add(tile, 0);
                     if(toCheck.Count() != 0)
                     {
                        tile = toCheck.Last();
@@ -410,7 +423,7 @@ namespace DungeonGenerator
                     
                 } while (toCheck.Count != 0);
 
-                Room2 roomToAdd = new Room2(roomTiles, roomBorders, id);
+                Room2 roomToAdd = new Room2(roomTiles.Keys.ToList(), roomBorders.Keys.ToList(), id);
                 room2s.Add(roomToAdd);
             }
         }
