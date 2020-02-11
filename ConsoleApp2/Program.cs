@@ -17,19 +17,19 @@ namespace DungeonGenerator
             Console.WriteLine("Starting the map generation \t time of execution:{0} ", watch.Elapsed);
             watch.Reset();
             watch.Start();
-            DungeonMap map = new DungeonMap(50, 30, 15,1);
+            DungeonMap map = new DungeonMap(500, 300, 15,1);
             Console.WriteLine("Ending the map generation \t time of execution:{0} ", watch.Elapsed);
             watch.Reset();
             watch.Start();
-            ImageBuffer buffer = new ImageBuffer(50, 30);
+            ImageBuffer buffer = new ImageBuffer(500, 300);
             Console.WriteLine("Image Buffer Created \t time of execution:{0} ", watch.Elapsed);
             watch.Reset();
             watch.Start();
             char[][] dmap = map.getMap();
             //write array into png
-            for(int i = 0; i< 30; i++)
+            for(int i = 0; i< 300; i++)
             {
-                for(int j = 0; j< 50; j++)
+                for(int j = 0; j< 500; j++)
                 {
                     if (dmap[i][j] == 'o')
                     {
@@ -44,7 +44,7 @@ namespace DungeonGenerator
             Console.WriteLine("Image created base on the map \t time of execution:{0} ", watch.Elapsed);
             watch.Reset();
             watch.Start();
-            buffer.save();
+            //buffer.save();
             Console.WriteLine("Image saved \t time of execution:{0} ", watch.Elapsed);
             map.print();
             Console.ReadKey();

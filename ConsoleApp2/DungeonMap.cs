@@ -337,95 +337,113 @@ namespace DungeonGenerator
 
         private void mapRooms()
         {
-            /*mapRooms method
-             * Purpose of this method is to find every set of continuous floor tiles and set is as the room
-             * Method map all the floor tiles and then find continuous set
+            /*new map room method - indexing similar then writing the indexes into room list
+             *1. Create copy of the dMap byt in integers - walls are 0, floor has ID number of the room
+             *2. Generate floor tiles based on id - if no negbourth tiles has id - create new ID else set id to the one of 
+             * the neghbourt tile
+             *3.create the rooms based on the id - borders can be simultinuosly maped with the rooms
              */
+            fillRoomMap();
 
-            //Queue for storing all of the empty foor tiles
-            Queue<string> emptyTiles = new Queue<string>();
-
-            //Mapping empty floor tiles
-            for(int i = 0; i< Y-1; i++)
+            int ID = 1;
+            for(int i = 0; i< Y; i++)
             {
-                for (int j = 0; j < X - 1; j++)
+                for(int j = 0; j< X; j++)
                 {
-                    if(dMap[i][j] == empty)
+                    //tile check logic
+                    //check in a tile is the wall
+                    if (dMap[i][j] == 'o')
                     {
-                        emptyTiles.Enqueue(i + "." + j);
+                        roomMap[i][j] = 0;
+                    }
+                    else
+                    {
+                        //help array with indexes
+                        int[][] helpArray =
+                        {
+                            // X indexes
+                            new int[] {0,0,1,-1},
+                            //Y indexes
+                            new int[] {1,-1,0,0}
+                        };
+                        for(int t = 0; t<helpArray[0].Length; t++)
+                        {
+                            int indexX = j + helpArray[0][t];
+                            int indexY = i + helpArray[1][t];
+                            if (((indexX > 0 && indexX < X) && (indexY > 0 && indexY < Y) && roomMap[indexY][indexX] > 0))
+                            {
+                                roomMap[i][j] = roomMap[indexY][indexX];
+                                break;
+                            }
+    
+                        }
+                        if(roomMap[i][j] == 0)
+                        {
+                            roomMap[i][j] = ID;
+                            ID++;
+
+                        }
                     }
                 }
             }
 
-            //Searching for continuous floor tiles
-            while(emptyTiles.Count() != 0)
+            printRoomMap();
+
+
+            //CODE FOR TESTING THE NEW ROOM MAPPING ALGORITH - convert room into image
+            ImageBuffer buffer = new ImageBuffer(X, Y);
+            Dictionary<int, int[]> colors = new Dictionary<int, int[]>();
+            for (int i = 0; i < Y; i++)
             {
-                //Disctionary of the floortiles of the current room
-                Dictionary<string, int> roomTiles = new Dictionary<string, int>();
-
-                //Distionary of the border tiles of the current room 
-                Dictionary<string, int> roomBorders = new Dictionary<string, int>();
-
-                //Dictionary for tiles that was already marked for check
-                Dictionary<string, int> toCheckDictionary = new Dictionary<string, int>();
-                
-                //Room ID
-                int id = 1;
-                if (room2s.Count != 0) id = room2s.Last().getID() + 1;
-
-                //Tiles to check
-                Queue<string> toCheck = new Queue<string>();
-
-                //Add initial tile into the toCheck Queue
-                toCheck.Enqueue(emptyTiles.Peek());
-                toCheckDictionary.Add(emptyTiles.Dequeue(), 0);
-
-
-                //help array with index shifts
-                int[][] indexShift =
+                Random rn = new Random();
+                for (int j = 0; j < X; j++)
                 {
-                    //X coordinates
-                    new int[] {0 , 0, 1,-1},
-                    //Y coordinates
-                    new int[] {1 ,-1, 0, 0}
-                };
-
-                do
-                {
-                    string tile = toCheck.Dequeue(); 
-                    for (int i = 0; i < indexShift[0].Length; i++)
+                    if (roomMap[i][j] == 0)
                     {
-                        int indexX = parseMap(tile)[0] + indexShift[1][i];
-                        int indexY = parseMap(tile)[1] + indexShift[0][i];
-
-                        if (dMap[indexY][indexX] == wall)
-                        {
-                            if (!roomBorders.ContainsKey(indexY + "." + indexX) && (indexY > 0 && indexY < Y - 1) && (indexX > 0 && indexX < X - 1))
-                            {
-                                roomBorders.Add(indexY + "." + indexX, 0);
-                            }
-                        }
-                        else if (dMap[indexY][indexX] == empty)
-                        {
-                            if (!roomTiles.ContainsKey(indexY + "." + indexX) && !toCheckDictionary.ContainsKey(indexY + "." + indexX))
-                            {
-                                toCheckDictionary.Add(indexY + "." + indexX, 0);
-                                toCheck.Enqueue(indexY + "." + indexX);
-                            }
-                        }
+                        buffer.PlotPixel(j, i, 0, 0, 0);
                     }
-
-                    roomTiles.Add(tile, 0);
-                    if(toCheck.Count() != 0)
+                    else
                     {
-                       tile = toCheck.Last();
-                    }
-                    
-                } while (toCheck.Count != 0);
+                        if (colors.ContainsKey(roomMap[i][j]))
+                        {
+                            byte red = (Byte)colors[roomMap[i][j]][0];
+                            byte green = (Byte)colors[roomMap[i][j]][1];
+                            byte blue = (Byte)colors[roomMap[i][j]][2];
 
-                Room2 roomToAdd = new Room2(roomTiles.Keys.ToList(), roomBorders.Keys.ToList(), id);
-                room2s.Add(roomToAdd);
+                            buffer.PlotPixel(j, i, red, green, blue);
+                        }
+                        else
+                        {
+                            //Random rn = new Random();
+                            byte red = (Byte)rn.Next(0, 255);
+                            byte green = (Byte)rn.Next(0, 255);
+                            byte blue = (Byte)rn.Next(0, 255);
+                            int[] col = { red, green, blue };
+                            colors.Add(roomMap[i][j], col);
+                            buffer.PlotPixel(j, i, red, green, blue);
+                        }
+
+                    }
+                }
             }
+            buffer.save();
+
+
+        }
+    
+
+        private void printRoomMap()
+        {
+            for (int i = 0; i < Y; i++)
+            {
+                for (int j = 0; j < X; j++)
+                {
+                    Console.Write(roomMap[i][j] + "   ");
+
+                }
+                Console.WriteLine();
+            }
+
         }
 
         private void printMapRoom()
