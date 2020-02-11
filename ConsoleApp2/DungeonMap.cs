@@ -374,8 +374,10 @@ namespace DungeonGenerator
                 //help array with index shifts
                 int[][] indexShift =
                 {
-                    new int[] {0 , 0, 1, 1,  1,-1,-1, -1},
-                    new int[] {1 ,-1, 1, 0, -1, 1, 0, -1}
+                    //X coordinates
+                    new int[] {0 , 0, 1,-1},
+                    //Y coordinates
+                    new int[] {1 ,-1, 0, 0}
                 };
 
                 do
