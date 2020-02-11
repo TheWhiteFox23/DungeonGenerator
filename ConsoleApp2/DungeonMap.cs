@@ -48,7 +48,8 @@ namespace DungeonGenerator
             TimeOfExecutionEnd(watch, "Generating rooms");
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
-            printMapRoom();
+            //floodFillTest();
+            //printMapRoom();
             /*deleteObsolent();
             TimeOfExecutionEnd(watch, "Deleting Obsolent");
             fillRoomMap();
@@ -91,6 +92,31 @@ namespace DungeonGenerator
                     roomMap[parseMap(t)[1]][parseMap(t)[0]] = r.getID();
                 }
                 
+            }
+        }
+
+        public void fillRoomMap2()
+        {
+            for (int i = 0; i < Y; i++)
+            {
+                roomMap[i] = new int[X];
+                for (int j = 0; j < X; j++)
+                {
+                    roomMap[i][j] = 0;
+                }
+            }
+            for (int i = 0; i< Y; i++)
+            {
+                for(int j = 0; j< X; j++)
+                {
+                    if(dMap[i][j] == 'o')
+                    {
+                        roomMap[i][j] = 0;
+                    }else
+                    {
+                        roomMap[i][j] = 1;
+                    }
+                }
             }
         }
 
@@ -343,54 +369,161 @@ namespace DungeonGenerator
              * the neghbourt tile
              *3.create the rooms based on the id - borders can be simultinuosly maped with the rooms
              */
-            fillRoomMap();
+            fillRoomMap2();
 
-            int ID = 1;
-            for(int i = 0; i< Y; i++)
+            int ID = 2;
+            //storing all tiles and indexes of the room
+            Dictionary<string, int> allTiles = new Dictionary<string, int>(); 
+            for (int i = 0; i < Y; i++)
             {
-                for(int j = 0; j< X; j++)
+                for (int j = 0; j < X; j++)
                 {
-                    //tile check logic
-                    //check in a tile is the wall
-                    if (dMap[i][j] == 'o')
-                    {
-                        roomMap[i][j] = 0;
-                    }
-                    else
-                    {
-                        //help array with indexes
-                        int[][] helpArray =
-                        {
-                            // X indexes
-                            new int[] {0,0,1,-1},
-                            //Y indexes
-                            new int[] {1,-1,0,0}
-                        };
-                        for(int t = 0; t<helpArray[0].Length; t++)
-                        {
-                            int indexX = j + helpArray[0][t];
-                            int indexY = i + helpArray[1][t];
-                            if (((indexX > 0 && indexX < X) && (indexY > 0 && indexY < Y) && roomMap[indexY][indexX] > 0))
-                            {
-                                roomMap[i][j] = roomMap[indexY][indexX];
-                                break;
-                            }
-    
-                        }
-                        if(roomMap[i][j] == 0)
-                        {
-                            roomMap[i][j] = ID;
-                            ID++;
-
-                        }
-                    }
+                    if (dMap[i][j] != 'o') allTiles.Add(i + "." + j, 0);
+                    
                 }
+            }
+            //int dictionaryCount = allTiles.Count();
+            while (allTiles.Count()>0)
+            {
+                //randomly choose tile and perform flood fill
+                List<string> toRemove = floodFill(ID, parseMap(allTiles.Keys.Last())[0], parseMap(allTiles.Keys.Last())[1], 1, roomMap);
+                ID++;
+                foreach(var r in toRemove)
+                {
+                    allTiles.Remove(r);
+                    //Console.Write(r + " ");
+                    //dictionaryCount--;
+                }
+                Console.WriteLine();
             }
 
             printRoomMap();
 
 
             //CODE FOR TESTING THE NEW ROOM MAPPING ALGORITH - convert room into image
+            bufferRoomMap();
+
+        }
+
+        private void floodFillTest()
+        {
+            int[][] test =
+            {
+                new int[] {0,0,0,0,0,0,0,0,0,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,0,0,0,0,0,1,1,1,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,1,1,1,0,0,1,1,1,0},
+                new int[] {0,0,0,0,0,0,0,0,0,0},
+            };
+            floodFill(2, 2, 3, 1, test);
+            floodFill(3, 7, 8, 1, test);
+
+            ImageBuffer buffer = new ImageBuffer(10, 10);
+            Dictionary<int, int[]> colors = new Dictionary<int, int[]>();
+            for (int i = 0; i < 10; i++)
+            {
+                Random rn = new Random();
+                for (int j = 0; j < 10; j++)
+                {
+                    if (test[i][j] == 0)
+                    {
+                        buffer.PlotPixel(j, i, 0, 0, 0);
+                    }
+                    else
+                    {
+                        if (colors.ContainsKey(test[i][j]))
+                        {
+                            byte red = (Byte)colors[test[i][j]][0];
+                            byte green = (Byte)colors[test[i][j]][1];
+                            byte blue = (Byte)colors[test[i][j]][2];
+
+                            buffer.PlotPixel(j, i, red, green, blue);
+                        }
+                        else
+                        {
+                            //Random rn = new Random();
+                            byte red = (Byte)rn.Next(0, 255);
+                            byte green = (Byte)rn.Next(0, 255);
+                            byte blue = (Byte)rn.Next(0, 255);
+                            int[] col = { red, green, blue };
+                            colors.Add(test[i][j], col);
+                            buffer.PlotPixel(j, i, red, green, blue);
+                        }
+
+                    }
+                }
+            }
+            buffer.save();
+
+            for(int i = 0; i< 10; i++)
+            {
+                for (int j = 0; j< 10; j++)
+                {
+                    Console.Write(test[i][j] + " ");
+                }
+                Console.WriteLine();
+            }
+        }
+        private List<string> floodFill(int ID, int X, int Y, int target, int[][] roomMap)
+        {
+            List<string> floodFiled = new List<string>();
+            if(roomMap[Y][X] == ID)
+            {
+                Console.WriteLine("ID is already correct");
+                return floodFiled;
+            }else if(roomMap[Y][X] != target)
+            {
+                Console.WriteLine("ID do not response to target");
+                return floodFiled;
+            }
+
+            Queue<int[]> queue = new Queue<int[]>();
+            queue.Enqueue(new int[] { X, Y });
+            while (queue.Count() > 0)
+            {
+                floodFiled.Add(Y + "." + X);
+                int indexX = queue.Peek()[0];
+                int indexY = queue.Dequeue()[1];
+                int[] W = { indexX, indexY };
+                int[] E = { indexX, indexY };
+                
+                while (roomMap[W[1]][W[0]] == target)
+                {
+                    Console.Write(W[0] + " ");
+                    W[0]--; 
+                }
+
+                while (roomMap[E[1]][E[0]] == target)
+                {
+                    Console.Write(E[0] + " ");
+                    E[0]++;
+                }
+                Console.WriteLine();
+                for(int i = W[0]+1; i<E[0]; i++)
+                {
+                    roomMap[W[1]][i] = ID;
+                    floodFiled.Add(W[1] + "." + i);
+                    if(roomMap[W[1] + 1][i] == target)
+                    {
+                        queue.Enqueue(new int[] { i, W[1] + 1 });
+                    }
+                    if (roomMap[W[1] - 1][i] == target)
+                    {
+                        queue.Enqueue(new int[] { i, W[1] - 1 });
+                    }
+                }
+            }
+
+            return floodFiled;
+        }
+
+        private void bufferRoomMap()
+        {
             ImageBuffer buffer = new ImageBuffer(X, Y);
             Dictionary<int, int[]> colors = new Dictionary<int, int[]>();
             for (int i = 0; i < Y; i++)
@@ -427,10 +560,7 @@ namespace DungeonGenerator
                 }
             }
             buffer.save();
-
-
         }
-    
 
         private void printRoomMap()
         {
@@ -438,7 +568,7 @@ namespace DungeonGenerator
             {
                 for (int j = 0; j < X; j++)
                 {
-                    Console.Write(roomMap[i][j] + "   ");
+                    Console.Write(roomMap[i][j] + " ");
 
                 }
                 Console.WriteLine();
