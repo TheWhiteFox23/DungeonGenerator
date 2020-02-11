@@ -16,6 +16,7 @@ namespace DungeonGenerator
         int maxRoomSize;
         int minRoomSize;
         Dictionary<string, int> validStarts;
+        Dictionary<int, Room2> rooms2;
         List<Room2> room2s;
         System.Diagnostics.Stopwatch watch;
 
@@ -32,6 +33,7 @@ namespace DungeonGenerator
             validStarts = new Dictionary<string, int>();
             room2s = new List<Room2>();
             watch = new System.Diagnostics.Stopwatch();
+            rooms2 = new Dictionary<int, Room2>();
 
             onCreate();
         }
@@ -48,16 +50,19 @@ namespace DungeonGenerator
             TimeOfExecutionEnd(watch, "Generating rooms");
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
+            mapBorders2();
+            TimeOfExecutionEnd(watch, "Maping Borders  ");
             //floodFillTest();
             //printMapRoom();
-            /*deleteObsolent();
+            //deleteObsolent();
             TimeOfExecutionEnd(watch, "Deleting Obsolent");
-            fillRoomMap();
+            //fillRoomMap();
             TimeOfExecutionEnd(watch, "Filling Room Map");
-            mapBorders();
+            //mapBorders();
             TimeOfExecutionEnd(watch, "Maping Borders");
+            //room2s = rooms2.Values.ToList();
             conectRooms();
-            TimeOfExecutionEnd(watch, "Conecting Rooms");*/
+            TimeOfExecutionEnd(watch, "Conecting Rooms");
             watch.Stop();
         }
 
@@ -388,7 +393,7 @@ namespace DungeonGenerator
             {
                 //randomly choose tile and perform flood fill
                 List<string> toRemove = floodFill(ID, parseMap(allTiles.Keys.Last())[0], parseMap(allTiles.Keys.Last())[1], 1, roomMap);
-                room2s.Add(new Room2(toRemove, ID));
+                rooms2.Add(ID, new Room2(toRemove, ID));
                 ID++;
                 foreach(var r in toRemove)
                 {
@@ -621,6 +626,53 @@ namespace DungeonGenerator
             Console.WriteLine("\t {0} \t time of execution {1}", message, watch.Elapsed);
             watch.Reset();
             watch.Start();
+
+        }
+
+        private void mapBorders2()
+        {
+            int[][] indexes =
+            {
+                //indexes for X1
+                new int[] {0,1},
+                //indexes for Y1
+                new int[] {1,0},
+                //indexes for X2
+                new int[] {0,-1},
+                //indexes for Y2
+                new int[] {-1,0}
+            };
+            for(int i = 1; i<Y-1; i++)
+            {
+                for(int j = 1; j< X-1; j++)
+                {
+                    if(roomMap[i][j] == 0)
+                    {
+                        for(int t = 0; t<indexes[0].Length; t++)
+                        {
+                            int indexX1 = j + indexes[0][t];
+                            int indexY1 = i + indexes[1][t];
+                            int indexX2 = j + indexes[2][t];
+                            int indexY2 = i + indexes[3][t];
+                            if(roomMap[indexY1][indexX1]>0 && roomMap[indexY2][indexX2]>0 && roomMap[indexY1][indexX1] != roomMap[indexY2][indexX2])
+                            {
+                                rooms2[roomMap[indexY1][indexX1]].addBorder2(j + "." + i, roomMap[indexY2][indexX2]);
+                                rooms2[roomMap[indexY2][indexX1]].addBorder2(j + "." + i, roomMap[indexY1][indexX2]);
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            foreach(var r in rooms2)
+            {
+                Console.Write("Room with ID: {0} has following borders", r.Value.getID());
+                foreach(var b in r.Value.getBorder2())
+                {
+                    Console.Write(b.Key + " ");
+                }
+                Console.WriteLine();
+            }
 
         }
 

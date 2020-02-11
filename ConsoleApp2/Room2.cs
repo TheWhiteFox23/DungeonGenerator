@@ -14,6 +14,7 @@ namespace DungeonGenerator
         //border tiles list
         List<string> borders; //= new List<string>();
         //id number - smallest is 1, 0 is reserved for walls;
+        Dictionary<string, int> border2 = new Dictionary<string, int>();
         int id;
         //Upper right block - only for debgig purpose can be removed
         string upperRight;
@@ -335,6 +336,30 @@ namespace DungeonGenerator
             {
                 if(neighbours.ContainsKey(c))neighbours.Remove(c);
             }
+        }
+
+        public void addBorder2(string border, int neighbourt)
+        {
+            if(!border2.ContainsKey(border))border2.Add(border, neighbourt);
+            if (neighbours.ContainsKey(neighbourt))
+            {
+                List<string> add = neighbours[neighbourt];
+                add.Add(border);
+                neighbours[neighbourt] = add;
+            }
+            else
+            {
+                List<string> add = new List<string>();
+                add.Add(border);
+                neighbours.Add(neighbourt, add);
+            }
+
+        }
+
+        public Dictionary<string, int> getBorder2()
+        {
+            return border2;
+
         }
     }
 
