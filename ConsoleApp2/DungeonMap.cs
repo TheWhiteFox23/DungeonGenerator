@@ -257,6 +257,7 @@ namespace DungeonGenerator
                             dMap[i + 1][j + 1] == wall)
                         {
                             validStarts.Add(i + "." + j, 1);
+                            //dMap[i][j] = 'x';
                         }
                     }
                     catch
@@ -387,6 +388,7 @@ namespace DungeonGenerator
             {
                 //randomly choose tile and perform flood fill
                 List<string> toRemove = floodFill(ID, parseMap(allTiles.Keys.Last())[0], parseMap(allTiles.Keys.Last())[1], 1, roomMap);
+                room2s.Add(new Room2(toRemove, ID));
                 ID++;
                 foreach(var r in toRemove)
                 {
@@ -394,10 +396,11 @@ namespace DungeonGenerator
                     //Console.Write(r + " ");
                     //dictionaryCount--;
                 }
-                Console.WriteLine();
+                //Console.WriteLine();
             }
 
-            printRoomMap();
+
+            //printRoomMap();
 
 
             //CODE FOR TESTING THE NEW ROOM MAPPING ALGORITH - convert room into image
@@ -472,6 +475,7 @@ namespace DungeonGenerator
         private List<string> floodFill(int ID, int X, int Y, int target, int[][] roomMap)
         {
             List<string> floodFiled = new List<string>();
+            List<string> borders = new List<string>();
             if(roomMap[Y][X] == ID)
             {
                 Console.WriteLine("ID is already correct");
@@ -494,17 +498,17 @@ namespace DungeonGenerator
                 
                 while (roomMap[W[1]][W[0]] == target)
                 {
-                    Console.Write(W[0] + " ");
+                    //Console.Write(W[0] + " ");
                     W[0]--; 
                 }
 
                 while (roomMap[E[1]][E[0]] == target)
                 {
-                    Console.Write(E[0] + " ");
+                    //Console.Write(E[0] + " ");
                     E[0]++;
                 }
-                Console.WriteLine();
-                for(int i = W[0]+1; i<E[0]; i++)
+                //Console.WriteLine();
+                for (int i = W[0]+1; i<E[0]; i++)
                 {
                     roomMap[W[1]][i] = ID;
                     floodFiled.Add(W[1] + "." + i);

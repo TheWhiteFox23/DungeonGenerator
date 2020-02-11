@@ -31,6 +31,13 @@ namespace DungeonGenerator
             upperRight = findUpperRightTile();
             conections.Add(id);
         }
+        public Room2(List<string> tiles, int id)
+        {
+            this.tiles = tiles;
+            this.id = id;
+            upperRight = findUpperRightTile();
+            conections.Add(id);
+        }
 
         //Overload - test of git
         public Room2()
