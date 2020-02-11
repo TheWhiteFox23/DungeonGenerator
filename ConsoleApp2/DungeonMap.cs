@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+
 namespace DungeonGenerator
 {
     public class DungeonMap
@@ -16,6 +17,7 @@ namespace DungeonGenerator
         int minRoomSize;
         Dictionary<string, int> validStarts;
         List<Room2> room2s;
+        System.Diagnostics.Stopwatch watch;
 
         public DungeonMap(int X, int Y, int maxRoomSize, int minRoomSize)
         {
@@ -29,20 +31,32 @@ namespace DungeonGenerator
             empty = ' ';
             validStarts = new Dictionary<string, int>();
             room2s = new List<Room2>();
+            watch = new System.Diagnostics.Stopwatch();
 
             onCreate();
         }
         private void onCreate()
         {
+            TimeOfExecutionStart(watch);
             fillMap(wall);
+            TimeOfExecutionEnd(watch, "Filling the map");
             findValid();
+            TimeOfExecutionEnd(watch, "Finding Valid  ");
             showValid();
+            TimeOfExecutionEnd(watch, "Showing Valid  ");
             generateRooms();
+            TimeOfExecutionEnd(watch, "Generating rooms");
             mapRooms();
+            TimeOfExecutionEnd(watch, "Maping Rooms   ");
             deleteObsolent();
+            TimeOfExecutionEnd(watch, "Deleting Obsolent");
             fillRoomMap();
+            TimeOfExecutionEnd(watch, "Filling Room Map");
             mapBorders();
+            TimeOfExecutionEnd(watch, "Maping Borders");
             conectRooms();
+            TimeOfExecutionEnd(watch, "Conecting Rooms");
+            watch.Stop();
         }
 
         private void fillMap(char wall)
@@ -421,6 +435,26 @@ namespace DungeonGenerator
                 print();*/
             }
             
+        }
+
+        public char[][] getMap()
+        {
+            return dMap;
+        }
+
+        private void TimeOfExecutionStart(System.Diagnostics.Stopwatch watch)
+        {
+            watch.Reset();
+            watch.Start();
+
+        }
+
+        private void TimeOfExecutionEnd(System.Diagnostics.Stopwatch watch, string message)
+        {
+            Console.WriteLine("\t {0} \t time of execution {1}", message, watch.Elapsed);
+            watch.Reset();
+            watch.Start();
+
         }
 
     }

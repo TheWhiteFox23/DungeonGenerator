@@ -17,12 +17,12 @@ namespace DungeonGenerator
             buffer = new byte[(4 * X) * Y];
             this.X = X;
             this.Y = Y;
-            GrayScale();
+            //GrayScale();
         }
 
-        private void PlotPixel(int X, int Y, byte redValue, byte greenValue, byte blueValue)
+        public void PlotPixel(int X, int Y, byte redValue, byte greenValue, byte blueValue)
         {
-            int offset = ((this.Y * 4) * Y) + (X * 4);
+            int offset = ((this.X * 4) * Y) + (X * 4);
             buffer[offset] = blueValue;
             buffer[offset + 1] = greenValue;
             buffer[offset + 2] = redValue;
@@ -49,7 +49,7 @@ namespace DungeonGenerator
             {
                 fixed (byte* ptr = buffer)
                 {
-                    using (Bitmap image = new Bitmap(Y, X, 256 * 4,
+                    using (Bitmap image = new Bitmap(X, Y, X * 4,
                         System.Drawing.Imaging.PixelFormat.Format32bppRgb, new IntPtr(ptr)))
                     {
                         image.Save(@"greyscale.png");
