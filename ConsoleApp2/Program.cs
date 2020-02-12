@@ -46,7 +46,7 @@ namespace DungeonGenerator
             watch.Start();
             buffer.save();
             Console.WriteLine("Image saved \t time of execution:{0} ", watch.Elapsed);
-            map.print();
+            //map.print();
             Console.ReadKey();
         }
     }
