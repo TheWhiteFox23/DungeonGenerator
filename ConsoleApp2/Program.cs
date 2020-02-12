@@ -12,6 +12,7 @@ namespace DungeonGenerator
         static void Main(string[] args)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            //TODO Clean Up - wreime more efective conection and maping algorith
             //TODO : What is the most time demanding part of the algorithm ?????
             //var currentTime =  
             Console.WriteLine("Starting the map generation \t time of execution:{0} ", watch.Elapsed);
