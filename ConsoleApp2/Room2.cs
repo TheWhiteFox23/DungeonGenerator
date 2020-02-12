@@ -337,6 +337,52 @@ namespace DungeonGenerator
                 if(neighbours.ContainsKey(c))neighbours.Remove(c);
             }
         }
+        public void mergeWith2(Room2 roomToMerge, string border)
+        {
+            //merge tiles
+            foreach(var t in roomToMerge.getTiles())
+            {
+                if(!tiles.Contains(t))tiles.Add(t);
+            }
+            tiles.Add(border);
+
+            //merge borders
+            foreach(var b in roomToMerge.getBorder2())
+            {
+                if (!border2.ContainsKey(b.Key)) border2.Add(b.Key, b.Value);
+            }
+
+            border2.Remove(border);
+
+            conections.Add(roomToMerge.getID());
+
+
+            foreach(var n in roomToMerge.getBorderMap())
+            {
+                if (!neighbours.ContainsKey(n.Key))
+                {
+                    neighbours.Add(n.Key, n.Value);
+                }
+                else
+                {
+                    var l = neighbours[n.Key];
+                    foreach(var i in n.Value)
+                    {
+                        if(i != border)
+                        {
+                            l.Add(i);
+                        }
+                        
+                    }
+                    neighbours[n.Key] = l;
+                }
+                
+            }
+            foreach(var c in conections)
+            {
+                if(neighbours.ContainsKey(c))neighbours.Remove(c);
+            }
+        }
 
         public void addBorder2(string border, int neighbourt)
         {

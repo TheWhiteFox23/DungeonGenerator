@@ -44,7 +44,7 @@ namespace DungeonGenerator
             Console.WriteLine("Image created base on the map \t time of execution:{0} ", watch.Elapsed);
             watch.Reset();
             watch.Start();
-            //buffer.save();
+            buffer.save();
             Console.WriteLine("Image saved \t time of execution:{0} ", watch.Elapsed);
             //map.print();
             Console.ReadKey();

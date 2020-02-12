@@ -39,30 +39,41 @@ namespace DungeonGenerator
         }
         private void onCreate()
         {
-            TimeOfExecutionStart(watch);
+            //setMap();
+            //TimeOfExecutionStart(watch);
             fillMap(wall);
-            TimeOfExecutionEnd(watch, "Filling the map");
-            findValid();
-            TimeOfExecutionEnd(watch, "Finding Valid  ");
-            showValid();
-            TimeOfExecutionEnd(watch, "Showing Valid  ");
-            generateRooms();
+            setMap();
+            //TimeOfExecutionEnd(watch, "Filling the map");
+            //TODO - findValid and showValid methods are practicly obsolent can be replaced with in the fillmap method
+            //findValid();
+            //TimeOfExecutionEnd(watch, "Finding Valid  ");
+            //showValid();
+            //TimeOfExecutionEnd(watch, "Showing Valid  ");
+            //generateRooms();
             TimeOfExecutionEnd(watch, "Generating rooms");
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
+            //TODO : is room maping working correctly ?
             mapBorders2();
+            //printRooms();
+            writeRoomMap();
+            writeMap();
+            //setMap();
+            //print();
             TimeOfExecutionEnd(watch, "Maping Borders  ");
             //floodFillTest();
             //printMapRoom();
             //deleteObsolent();
-            TimeOfExecutionEnd(watch, "Deleting Obsolent");
+            //TimeOfExecutionEnd(watch, "Deleting Obsolent");
             //fillRoomMap();
-            TimeOfExecutionEnd(watch, "Filling Room Map");
+            //TimeOfExecutionEnd(watch, "Filling Room Map");
             //mapBorders();
-            TimeOfExecutionEnd(watch, "Maping Borders");
+            //TimeOfExecutionEnd(watch, "Maping Borders");
             //room2s = rooms2.Values.ToList();
-            conectRooms();
-            TimeOfExecutionEnd(watch, "Conecting Rooms");
+            //conectRooms();
+            //TODO : cobectRooms method needs fix !!!
+            //conectRooms2();
+            //TimeOfExecutionEnd(watch, "Conecting Rooms");
             watch.Stop();
         }
 
@@ -366,6 +377,61 @@ namespace DungeonGenerator
 
             }
         }
+        
+        private void conectRooms2()
+        {
+            //randomly choosing room
+            Random random = new Random();
+
+            //purpose of the megaroom is to celect all conected room
+            Room2 megaRoom = rooms2.Values.ToList().ElementAt(random.Next(rooms2.Count));
+
+            //Console.WriteLine("Selected room with id {0}", megaRoom.getID());
+
+            while (rooms2.Count() != 1)
+            {
+                Random rn = new Random();
+                rooms2.Remove(megaRoom.getID());
+                //Choose one random neighbour and conect
+                Room2 neighboutr = new Room2(); //empty constructor (ID is zero and all tiles are empty);
+                //int roomToChange = megaRoom.getSurrounding().ElementAt(rn.Next(megaRoom.getSurrounding().Count()));
+                
+                int roomToChange = megaRoom.getSurrounding().Last();
+
+                neighboutr = rooms2[roomToChange];
+                //ckeck if room was changed
+                if (neighboutr.getID() == 0)
+                {
+                    Console.WriteLine("Neighbourt wasn't changed !!!!");
+                }
+
+                //remove random border
+                string border = megaRoom.getBorderMap()[roomToChange].Last();
+                Console.Write("CurrentMegaroomNeighbourts and borders:");
+                foreach(var b in megaRoom.getBorderMap()[roomToChange])
+                {
+                    Console.Write(b + " ");
+                }
+                Console.WriteLine();
+
+                try
+                {
+                    dMap[parseMap(border)[1]][parseMap(border)[0]] = '!';
+                }
+                catch
+                {
+                    Console.WriteLine("IndexOutOfBoudExeption");
+                }
+                
+
+
+                //merge tiles
+                megaRoom.mergeWith2(neighboutr, border);
+                room2s.Remove(neighboutr);
+                room2s.Add(megaRoom);
+
+            }
+        }
 
         private void mapRooms()
         {
@@ -654,17 +720,18 @@ namespace DungeonGenerator
                             int indexY1 = i + indexes[1][t];
                             int indexX2 = j + indexes[2][t];
                             int indexY2 = i + indexes[3][t];
+                            if (indexX1 >= X || indexX1 <= 0 || indexX2 >= X || indexX2 <= 0 || indexY1 >= Y || indexY1 <= 0 || indexY2 >= Y || indexY2 <= 0) continue;
                             if(roomMap[indexY1][indexX1]>0 && roomMap[indexY2][indexX2]>0 && roomMap[indexY1][indexX1] != roomMap[indexY2][indexX2])
                             {
-                                rooms2[roomMap[indexY1][indexX1]].addBorder2(j + "." + i, roomMap[indexY2][indexX2]);
-                                rooms2[roomMap[indexY2][indexX1]].addBorder2(j + "." + i, roomMap[indexY1][indexX2]);
+                                if(!rooms2[roomMap[indexY1][indexX1]].getBorder2().ContainsKey(i + "." + j))rooms2[roomMap[indexY1][indexX1]].addBorder2(i + "." + j, roomMap[indexY2][indexX2]);
+                                if(!rooms2[roomMap[indexY2][indexX2]].getBorder2().ContainsKey(i + "." + j))rooms2[roomMap[indexY2][indexX2]].addBorder2(i + "." + j, roomMap[indexY1][indexX1]);
                             }
                         }
                         
                     }
                 }
             }
-            foreach(var r in rooms2)
+            /*foreach(var r in rooms2)
             {
                 Console.Write("Room with ID: {0} has following borders", r.Value.getID());
                 foreach(var b in r.Value.getBorder2())
@@ -672,9 +739,107 @@ namespace DungeonGenerator
                     Console.Write(b.Key + " ");
                 }
                 Console.WriteLine();
+            }*/
+
+        }
+
+        private void printRooms()
+        {
+            foreach(var r in rooms2.Values.ToList())
+            {
+                Console.WriteLine("Room with ID: {0} has following statistics", r.getID());
+                //Console.Write("\t");
+                foreach(var n in r.getBorderMap())
+                {
+                    Console.Write("\t");
+                    Console.Write("Neighbourt ID: {0} has following borders : ", n.Key);
+                    foreach(var l in n.Value)
+                    {
+                        Console.Write("{0} ", l);
+                    }
+                    Console.WriteLine();
+                }
+                
+            }
+        }
+
+        private void writeRoomMap()
+        {
+            string text = "";
+            foreach (var r in rooms2.Values.ToList())
+            {
+                text +=  ("Room with ID: " + r.getID()+" has following statistics \n");
+                //Console.Write("\t");
+                foreach (var n in r.getBorderMap())
+                {
+                    text += ("\t");
+                    text += ("Neighbourt ID: " + n.Key + " has following borders : ");
+                    foreach (var l in n.Value)
+                    {
+                        text +=  (l + " ");
+                    }
+                    text += ("\n");
+                }
+
+            }
+            System.IO.File.WriteAllText(@"C:\Users\pavelkaf\source\repos\ConsoleApp2\ConsoleApp2\bin\Debug\RoomBorders.txt", text);
+        }  
+        private void writeMap()
+        {
+            string text = "";
+            for (int i = 0; i < Y; i++)
+            {
+                text += (i + ": \t");
+                for (int j = 0; j < X; j++)
+                {
+                    text += (dMap[i][j] + " ");
+                }
+                text += "\n";
+            }
+            System.IO.File.WriteAllText(@"C:\Users\pavelkaf\source\repos\ConsoleApp2\ConsoleApp2\bin\Debug\RoomMap.txt", text);
+        }
+
+        private void setMap()
+        {
+            char[][] testMap = new char[30][];
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\pavelkaf\source\repos\ConsoleApp2\ConsoleApp2\bin\Debug\TestMap.txt");
+            //test if reading
+            /*foreach(var l in lines)
+            {
+                Console.WriteLine(l);
+
+            }*/
+            int IndexY =0;
+            
+            foreach(var l in lines)
+            {
+                int IndexX = 0;
+                //Console.WriteLine("l.lengt is {0}", l.Length);
+                for(int i =0; i<l.Length; i++) 
+                {
+                    if(i%2 == 0)
+                    {
+                        try
+                        {
+                            dMap[IndexY][IndexX] = l.ElementAt(i);
+                        }
+                        catch
+                        {
+
+                        }
+                        
+                        IndexX++;
+                    }
+                    
+                    
+
+                }
+                IndexY++;
             }
 
         }
+
+
 
     }
 }
