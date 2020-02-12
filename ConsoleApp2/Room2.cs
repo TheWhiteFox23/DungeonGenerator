@@ -340,17 +340,17 @@ namespace DungeonGenerator
         public void mergeWith2(Room2 roomToMerge, string border)
         {
             //merge tiles
-            foreach(var t in roomToMerge.getTiles())
+            /*foreach(var t in roomToMerge.getTiles())
             {
                 if(!tiles.Contains(t))tiles.Add(t);
             }
-            tiles.Add(border);
+            tiles.Add(border);*/
 
             //merge borders
-            foreach(var b in roomToMerge.getBorder2())
+            /*foreach(var b in roomToMerge.getBorder2())
             {
                 if (!border2.ContainsKey(b.Key)) border2.Add(b.Key, b.Value);
-            }
+            }*/
 
             border2.Remove(border);
 

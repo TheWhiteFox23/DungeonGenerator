@@ -56,7 +56,7 @@ namespace DungeonGenerator
             //TODO : is room maping working correctly ?
             mapBorders2();
             //printRooms();
-            writeRoomMap();
+            //writeRoomMap();
             //writeMap();
             //setMap();
             //print();
@@ -73,7 +73,7 @@ namespace DungeonGenerator
             //conectRooms();
             //TODO : cobectRooms method needs fix !!!
             conectRooms2();
-            writeMap();
+            //writeMap();
             TimeOfExecutionEnd(watch, "Conecting Rooms");
             watch.Stop();
         }
@@ -389,34 +389,27 @@ namespace DungeonGenerator
              */
             //randomly choosing room
             Random random = new Random();
+            int count = rooms2.Count();
 
             //purpose of the megaroom is to celect all conected room
-            Room2 megaRoom = rooms2.Values.ToList().ElementAt(random.Next(rooms2.Count));
+            //Room2 megaRoom = rooms2.Values.ToList().ElementAt(random.Next(rooms2.Count));
+            Room2 megaRoom = rooms2[random.Next(rooms2.Count())];
 
             //Console.WriteLine("Selected room with id {0}", megaRoom.getID());
-            int i = 5;
-            while (rooms2.Count() != 1 || i > 0)
+
+            while (rooms2.Count() != 1)
             {
-                i--;
-                Random rn = new Random();
+                //Random rn = new Random();
                 rooms2.Remove(megaRoom.getID());
                 //Choose one random neighbour and conect
                 Room2 neighboutr = new Room2(); //empty constructor (ID is zero and all tiles are empty);
-                //int roomToChange = megaRoom.getSurrounding().ElementAt(rn.Next(megaRoom.getSurrounding().Count()));
 
-                //Get surronding test
-                //List<int> surrounding = megaRoom.getSurrounding();
-                //foreach(int l in surrounding)
-                //{
-                //    Console.Write("{0} ", l);
-                //}
-                //Console.WriteLine();
                 
                 int roomToChange = megaRoom.getSurrounding().Last();
                 //Console.WriteLine(roomToChange);
 
                 //Get Tile
-                List<string> BorderTiles = megaRoom.getBorderMap()[roomToChange];
+                //List<string> BorderTiles = megaRoom.getBorderMap()[roomToChange];
                 /*Console.Write("Borders: ");
                 foreach(var v in BorderTiles)
                 {
@@ -424,7 +417,8 @@ namespace DungeonGenerator
                 }
                 Console.WriteLine();*/
 
-                string border = BorderTiles.ElementAt(rn.Next(BorderTiles.Count()));
+                string border = megaRoom.getBorderMap()[roomToChange].Last();
+                //string border = BorderTiles.ElementAt(random.Next(BorderTiles.Count()));
 
                 //Console.WriteLine("Choosen Border Tile : {0}", border);
 
@@ -762,6 +756,7 @@ namespace DungeonGenerator
                             {
                                 if(!rooms2[roomMap[indexY1][indexX1]].getBorder2().ContainsKey(i + "." + j))rooms2[roomMap[indexY1][indexX1]].addBorder2(i + "." + j, roomMap[indexY2][indexX2]);
                                 if(!rooms2[roomMap[indexY2][indexX2]].getBorder2().ContainsKey(i + "." + j))rooms2[roomMap[indexY2][indexX2]].addBorder2(i + "." + j, roomMap[indexY1][indexX1]);
+                                break;
                             }
                         }
                         
