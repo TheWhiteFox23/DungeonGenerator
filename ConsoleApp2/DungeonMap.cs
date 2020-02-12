@@ -40,16 +40,16 @@ namespace DungeonGenerator
         private void onCreate()
         {
             //setMap();
-            //TimeOfExecutionStart(watch);
+            TimeOfExecutionStart(watch);
             fillMap(wall);
-            setMap();
-            //TimeOfExecutionEnd(watch, "Filling the map");
+            //setMap();
+            TimeOfExecutionEnd(watch, "Filling the map");
             //TODO - findValid and showValid methods are practicly obsolent can be replaced with in the fillmap method
-            //findValid();
-            //TimeOfExecutionEnd(watch, "Finding Valid  ");
-            //showValid();
+            findValid();
+            TimeOfExecutionEnd(watch, "Finding Valid  ");
+            showValid();
             //TimeOfExecutionEnd(watch, "Showing Valid  ");
-            //generateRooms();
+            generateRooms();
             TimeOfExecutionEnd(watch, "Generating rooms");
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
@@ -57,7 +57,7 @@ namespace DungeonGenerator
             mapBorders2();
             //printRooms();
             writeRoomMap();
-            writeMap();
+            //writeMap();
             //setMap();
             //print();
             TimeOfExecutionEnd(watch, "Maping Borders  ");
@@ -72,8 +72,9 @@ namespace DungeonGenerator
             //room2s = rooms2.Values.ToList();
             //conectRooms();
             //TODO : cobectRooms method needs fix !!!
-            //conectRooms2();
-            //TimeOfExecutionEnd(watch, "Conecting Rooms");
+            conectRooms2();
+            writeMap();
+            TimeOfExecutionEnd(watch, "Conecting Rooms");
             watch.Stop();
         }
 
@@ -380,6 +381,12 @@ namespace DungeonGenerator
         
         private void conectRooms2()
         {
+            /**Room Connect algorith destciption
+             * 1, Select room - separate it from array
+             * 2, Find all of the neghbourt of the room and randomly choose one
+             * 3, selectst random border of the room - merge with current room and delete from list
+             * 4, add current room to the list
+             */
             //randomly choosing room
             Random random = new Random();
 
@@ -387,48 +394,78 @@ namespace DungeonGenerator
             Room2 megaRoom = rooms2.Values.ToList().ElementAt(random.Next(rooms2.Count));
 
             //Console.WriteLine("Selected room with id {0}", megaRoom.getID());
-
-            while (rooms2.Count() != 1)
+            int i = 5;
+            while (rooms2.Count() != 1 || i > 0)
             {
+                i--;
                 Random rn = new Random();
                 rooms2.Remove(megaRoom.getID());
                 //Choose one random neighbour and conect
                 Room2 neighboutr = new Room2(); //empty constructor (ID is zero and all tiles are empty);
                 //int roomToChange = megaRoom.getSurrounding().ElementAt(rn.Next(megaRoom.getSurrounding().Count()));
+
+                //Get surronding test
+                //List<int> surrounding = megaRoom.getSurrounding();
+                //foreach(int l in surrounding)
+                //{
+                //    Console.Write("{0} ", l);
+                //}
+                //Console.WriteLine();
                 
                 int roomToChange = megaRoom.getSurrounding().Last();
+                //Console.WriteLine(roomToChange);
 
-                neighboutr = rooms2[roomToChange];
-                //ckeck if room was changed
-                if (neighboutr.getID() == 0)
+                //Get Tile
+                List<string> BorderTiles = megaRoom.getBorderMap()[roomToChange];
+                /*Console.Write("Borders: ");
+                foreach(var v in BorderTiles)
                 {
-                    Console.WriteLine("Neighbourt wasn't changed !!!!");
+                    Console.Write("{0} ", v);
                 }
+                Console.WriteLine();*/
 
-                //remove random border
-                string border = megaRoom.getBorderMap()[roomToChange].Last();
-                Console.Write("CurrentMegaroomNeighbourts and borders:");
-                foreach(var b in megaRoom.getBorderMap()[roomToChange])
-                {
-                    Console.Write(b + " ");
-                }
-                Console.WriteLine();
+                string border = BorderTiles.ElementAt(rn.Next(BorderTiles.Count()));
 
-                try
-                {
-                    dMap[parseMap(border)[1]][parseMap(border)[0]] = '!';
-                }
-                catch
-                {
-                    Console.WriteLine("IndexOutOfBoudExeption");
-                }
+                //Console.WriteLine("Choosen Border Tile : {0}", border);
+
+                dMap[parseMap(border)[1]][parseMap(border)[0]] = ' ';
+
+                //merging
+                megaRoom.mergeWith2(rooms2[roomToChange], border);
+                rooms2.Remove(roomToChange);
+                rooms2.Add(megaRoom.getID(), megaRoom);
+
+                //neighboutr = rooms2[roomToChange];
+                ////ckeck if room was changed
+                //if (neighboutr.getID() == 0)
+                //{
+                //    Console.WriteLine("Neighbourt wasn't changed !!!!");
+                //}
+
+                ////remove random border
+                //string border = megaRoom.getBorderMap()[roomToChange].Last();
+                //Console.Write("CurrentMegaroomNeighbourts and borders:");
+                //foreach(var b in megaRoom.getBorderMap()[roomToChange])
+                //{
+                //    Console.Write(b + " ");
+                //}
+                //Console.WriteLine();
+
+                //try
+                //{
+                //    dMap[parseMap(border)[1]][parseMap(border)[0]] = '!';
+                //}
+                //catch
+                //{
+                //    Console.WriteLine("IndexOutOfBoudExeption");
+                //}
                 
 
 
-                //merge tiles
-                megaRoom.mergeWith2(neighboutr, border);
-                room2s.Remove(neighboutr);
-                room2s.Add(megaRoom);
+                ////merge tiles
+                //megaRoom.mergeWith2(neighboutr, border);
+                //room2s.Remove(neighboutr);
+                //room2s.Add(megaRoom);
 
             }
         }
@@ -475,7 +512,7 @@ namespace DungeonGenerator
 
 
             //CODE FOR TESTING THE NEW ROOM MAPPING ALGORITH - convert room into image
-            bufferRoomMap();
+            //bufferRoomMap();
 
         }
 
