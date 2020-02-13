@@ -12,13 +12,13 @@ namespace DungeonGenerator
         char[][] dMap;
         int [][] roomMap;
         char wall;
-        char empty;
         int maxRoomSize;
         int minRoomSize;
         Dictionary<string, int> validStarts;
         Dictionary<int, Room2> rooms2;
         List<Room2> room2s;
         System.Diagnostics.Stopwatch watch;
+        Random rn = new Random();
 
         public DungeonMap(int X, int Y, int maxRoomSize, int minRoomSize)
         {
@@ -29,7 +29,6 @@ namespace DungeonGenerator
             this.maxRoomSize = maxRoomSize;
             this.minRoomSize = minRoomSize;
             wall = 'o';
-            empty = ' ';
             validStarts = new Dictionary<string, int>();
             room2s = new List<Room2>();
             watch = new System.Diagnostics.Stopwatch();
@@ -39,42 +38,22 @@ namespace DungeonGenerator
         }
         private void onCreate()
         {
-            //setMap();
+
             TimeOfExecutionStart(watch);
             fillMap(wall);
-            //setMap();
             TimeOfExecutionEnd(watch, "Filling the map");
-            //TODO - findValid and showValid methods are practicly obsolent can be replaced with in the fillmap method
             findValid();
             TimeOfExecutionEnd(watch, "Finding Valid  ");
-            showValid();
-            TimeOfExecutionEnd(watch, "Showing Valid  ");
             generateRooms();
             TimeOfExecutionEnd(watch, "Generating rooms");
-            TimeOfExecutionStart(watch);
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
-            //TODO : is room maping working correctly ?
+            bufferRoomMap();
             mapBorders2();
-            //printRooms();
-            //writeRoomMap();
-            //writeMap();
-            //setMap();
-            //print();
             TimeOfExecutionEnd(watch, "Maping Borders  ");
-            //floodFillTest();
-            //printMapRoom();
-            deleteObsolent();
             TimeOfExecutionEnd(watch, "Deleting Obsolent");
-            //fillRoomMap();
-            //TimeOfExecutionEnd(watch, "Filling Room Map");
-            //mapBorders();
-            //TimeOfExecutionEnd(watch, "Maping Borders");
-            //room2s = rooms2.Values.ToList();
-            //conectRooms();
-            //TODO : cobectRooms method needs fix !!!
             conectRooms2();
-            //writeMap();
+            //bufferRoomMap();
             TimeOfExecutionEnd(watch, "Conecting Rooms");
             watch.Stop();
         }
@@ -92,55 +71,8 @@ namespace DungeonGenerator
             }
         }
 
-        public void fillRoomMap()
-        {
-            //initialize
-            for(int i = 0; i< Y; i++)
-            {
-                roomMap[i] = new int[X];
-                for(int j = 0; j< X; j++)
-                {
-                    roomMap[i][j] = 0;
-                }
-            }
-            foreach(Room2 r in room2s)
-            {
-                foreach(var t in r.getTiles())
-                {
-                    roomMap[parseMap(t)[1]][parseMap(t)[0]] = r.getID();
-                }
-                
-            }
-        }
-
-        public void fillRoomMap2()
-        {
-            for (int i = 0; i < Y; i++)
-            {
-                roomMap[i] = new int[X];
-                for (int j = 0; j < X; j++)
-                {
-                    roomMap[i][j] = 0;
-                }
-            }
-            for (int i = 0; i< Y; i++)
-            {
-                for(int j = 0; j< X; j++)
-                {
-                    if(dMap[i][j] == 'o')
-                    {
-                        roomMap[i][j] = 0;
-                    }else
-                    {
-                        roomMap[i][j] = 1;
-                    }
-                }
-            }
-        }
-
         private void generateRoom(string seed, int Xsize, int Ysize)
         {
-            Random rn = new Random();
             int Xindex = parseMap(seed)[0];
             int Yindex = parseMap(seed)[1];
             List<string> room = new List<string>();
@@ -216,27 +148,9 @@ namespace DungeonGenerator
             }
         }
 
-        private void deleteObsolent()
-        {
-            foreach(var rm in room2s)
-            {
-
-                rm.cleanRoom(dMap);
-
-            }
-        }
-
-        private void mapBorders()
-        {
-            foreach (Room2 rm in room2s)
-            {
-                rm.mapBorder(roomMap);
-            }
-        }
-
         private void generateRooms()
         {
-            Random rn = new Random();
+            //Random rn = new Random();
             while (validStarts.Count != 0)
             {
                 for (int i = 1; i < Y - 1; i++)
@@ -286,17 +200,6 @@ namespace DungeonGenerator
             }
         }
 
-        private void showValid()
-        {
-            var ar = validStarts.Keys.ToList();
-            foreach (var st in ar)
-            {
-                int Xindex = parseMap(st)[0];
-                int Yindex = parseMap(st)[1];
-                dMap[Yindex][Xindex] = 'x';
-            }
-        }
-
         public void print()
         {
             for (int i = 0; i < Y; i++)
@@ -335,50 +238,6 @@ namespace DungeonGenerator
             return ret;
 
         }
-
-        private void conectRooms()
-        {
-            //randomly choosing room
-            Random random = new Random();
-
-            //purpose of the megaroom is to celect all conected room
-            Room2 megaRoom = room2s.ElementAt(random.Next(room2s.Count));
-
-            //Console.WriteLine("Selected room with id {0}", megaRoom.getID());
-
-            while (room2s.Count() != 1)
-            {
-                Random rn = new Random();
-                room2s.Remove(megaRoom);
-                //Choose one random neighbour and conect
-                Room2 neighboutr = new Room2(); //empty constructor (ID is zero and all tiles are empty);
-                int roomToChange = megaRoom.getSurrounding().ElementAt(rn.Next(megaRoom.getSurrounding().Count()));
-
-                foreach (var r in room2s)
-                {
-                    if (r.getID() == roomToChange)     
-                    {
-                        neighboutr = r;
-                    }
-                }
-                //ckeck if room was changed
-                if (neighboutr.getID() == 0)
-                {
-                    Console.WriteLine("Neighbourt wasn't changed !!!!");
-                }
-
-                //remove random border
-                string border = megaRoom.getBorderMap()[roomToChange].Last();
-
-                dMap[parseMap(border)[1]][parseMap(border)[0]] = '!';
-
-                //merge tiles
-                megaRoom.mergeWith(neighboutr, border);
-                room2s.Remove(neighboutr);
-                room2s.Add(megaRoom);
-
-            }
-        }
         
         private void conectRooms2()
         {
@@ -391,19 +250,13 @@ namespace DungeonGenerator
             //randomly choosing room
             Random random = new Random();
             int count = rooms2.Count();
-            //Console.WriteLine("rooms2 count : {0} ", rooms2.Count());
-
-            //purpose of the megaroom is to celect all conected room
-            //Room2 megaRoom = rooms2.Values.ToList().ElementAt(random.Next(rooms2.Count));
+;
             int rand = random.Next(2, count +1);
-            //Console.WriteLine("Random number selected: {0}", rand);
             Room2 megaRoom = rooms2[rand];
 
-            //Console.WriteLine("Selected room with id {0}", megaRoom.getID());
 
             while (rooms2.Count() != 1)
             {
-                //Random rn = new Random();
                 rooms2.Remove(megaRoom.getID());
                 //Choose one random neighbour and conect
                 Room2 neighboutr = new Room2(); //empty constructor (ID is zero and all tiles are empty);
@@ -433,28 +286,10 @@ namespace DungeonGenerator
                         }
                     }
                     buffer.saveError();
-                    writeMap();
                     break;
                 }
 
-                
-
-                //int roomToChange = megaRoom.getSurrounding().Last();
-                //Console.WriteLine(roomToChange);
-
-                //Get Tile
-                //List<string> BorderTiles = megaRoom.getBorderMap()[roomToChange];
-                /*Console.Write("Borders: ");
-                foreach(var v in BorderTiles)
-                {
-                    Console.Write("{0} ", v);
-                }
-                Console.WriteLine();*/
-
                 string border = megaRoom.getBorderMap()[roomToChange].Last();
-                //string border = BorderTiles.ElementAt(random.Next(BorderTiles.Count()));
-
-                //Console.WriteLine("Choosen Border Tile : {0}", border);
 
                 dMap[parseMap(border)[1]][parseMap(border)[0]] = ' ';
 
@@ -462,39 +297,6 @@ namespace DungeonGenerator
                 megaRoom.mergeWith2(rooms2[roomToChange], border);
                 rooms2.Remove(roomToChange);
                 rooms2.Add(megaRoom.getID(), megaRoom);
-
-                //neighboutr = rooms2[roomToChange];
-                ////ckeck if room was changed
-                //if (neighboutr.getID() == 0)
-                //{
-                //    Console.WriteLine("Neighbourt wasn't changed !!!!");
-                //}
-
-                ////remove random border
-                //string border = megaRoom.getBorderMap()[roomToChange].Last();
-                //Console.Write("CurrentMegaroomNeighbourts and borders:");
-                //foreach(var b in megaRoom.getBorderMap()[roomToChange])
-                //{
-                //    Console.Write(b + " ");
-                //}
-                //Console.WriteLine();
-
-                //try
-                //{
-                //    dMap[parseMap(border)[1]][parseMap(border)[0]] = '!';
-                //}
-                //catch
-                //{
-                //    Console.WriteLine("IndexOutOfBoudExeption");
-                //}
-                
-
-
-                ////merge tiles
-                //megaRoom.mergeWith2(neighboutr, border);
-                //room2s.Remove(neighboutr);
-                //room2s.Add(megaRoom);
-
             }
         }
 
@@ -522,114 +324,56 @@ namespace DungeonGenerator
                     
                 }
             }
-            //int count = allTiles.Count();
-            //int dictionaryCount = allTiles.Count();
 
             while (allTiles.Count()>0)
             {
                 //randomly choose tile and perform flood fill
                 var watch2 = new System.Diagnostics.Stopwatch();
-                //watch2.Start();
                 string toParse = allTiles.Keys.First();
                 int indexX = parseMap(toParse)[0];
                 int indexY = parseMap(toParse)[1];
-                //Console.WriteLine("ParsingCoordinates : {0}", watch2.Elapsed);
-                //watch2.Restart();
 
                 List<string> toRemove = floodFill(ID, indexX, indexY, 1, roomMap);
-                //Console.WriteLine("Flood Fill : {0}", watch2.Elapsed);
 
-                //watch2.Restart();
                 rooms2.Add(ID, new Room2(toRemove, ID));
-                //Console.WriteLine("Add rooms : {0}", watch2.Elapsed);
-                //watch2.Restart();
+
                 ID++;
 
                 foreach (var r in toRemove)
                 {
-                    //count--;
                     allTiles.Remove(r);
-                    //Console.Write(r + " ");
-                    //dictionaryCount--;
                 }
-                //Console.WriteLine("Removing tiles : {0}", watch2.Elapsed);
-                //watch2.Stop();
-                //Console.WriteLine();
+
             }
-
-
-            //printRoomMap();
-
-
-            //CODE FOR TESTING THE NEW ROOM MAPPING ALGORITH - convert room into image
-            //bufferRoomMap();
 
         }
 
-        private void floodFillTest()
+        public void fillRoomMap2()
         {
-            int[][] test =
+            for (int i = 0; i < Y; i++)
             {
-                new int[] {0,0,0,0,0,0,0,0,0,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,0,0,0,0,0,1,1,1,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,1,1,1,0,0,1,1,1,0},
-                new int[] {0,0,0,0,0,0,0,0,0,0},
-            };
-            floodFill(2, 2, 3, 1, test);
-            floodFill(3, 7, 8, 1, test);
-
-            ImageBuffer buffer = new ImageBuffer(10, 10);
-            Dictionary<int, int[]> colors = new Dictionary<int, int[]>();
-            for (int i = 0; i < 10; i++)
-            {
-                Random rn = new Random();
-                for (int j = 0; j < 10; j++)
+                roomMap[i] = new int[X];
+                for (int j = 0; j < X; j++)
                 {
-                    if (test[i][j] == 0)
+                    roomMap[i][j] = 0;
+                }
+            }
+            for (int i = 0; i < Y; i++)
+            {
+                for (int j = 0; j < X; j++)
+                {
+                    if (dMap[i][j] == 'o')
                     {
-                        buffer.PlotPixel(j, i, 0, 0, 0);
+                        roomMap[i][j] = 0;
                     }
                     else
                     {
-                        if (colors.ContainsKey(test[i][j]))
-                        {
-                            byte red = (Byte)colors[test[i][j]][0];
-                            byte green = (Byte)colors[test[i][j]][1];
-                            byte blue = (Byte)colors[test[i][j]][2];
-
-                            buffer.PlotPixel(j, i, red, green, blue);
-                        }
-                        else
-                        {
-                            //Random rn = new Random();
-                            byte red = (Byte)rn.Next(0, 255);
-                            byte green = (Byte)rn.Next(0, 255);
-                            byte blue = (Byte)rn.Next(0, 255);
-                            int[] col = { red, green, blue };
-                            colors.Add(test[i][j], col);
-                            buffer.PlotPixel(j, i, red, green, blue);
-                        }
-
+                        roomMap[i][j] = 1;
                     }
                 }
             }
-            buffer.save();
-
-            for(int i = 0; i< 10; i++)
-            {
-                for (int j = 0; j< 10; j++)
-                {
-                    Console.Write(test[i][j] + " ");
-                }
-                Console.WriteLine();
-            }
         }
+
         private List<string> floodFill(int ID, int X, int Y, int target, int[][] roomMap)
         {
             List<string> floodFiled = new List<string>();
@@ -656,16 +400,13 @@ namespace DungeonGenerator
                 
                 while (roomMap[W[1]][W[0]] == target)
                 {
-                    //Console.Write(W[0] + " ");
                     W[0]--; 
                 }
 
                 while (roomMap[E[1]][E[0]] == target)
                 {
-                    //Console.Write(E[0] + " ");
                     E[0]++;
                 }
-                //Console.WriteLine();
                 for (int i = W[0]+1; i<E[0]; i++)
                 {
                     roomMap[W[1]][i] = ID;
@@ -690,7 +431,6 @@ namespace DungeonGenerator
             Dictionary<int, int[]> colors = new Dictionary<int, int[]>();
             for (int i = 0; i < Y; i++)
             {
-                Random rn = new Random();
                 for (int j = 0; j < X; j++)
                 {
                     if (roomMap[i][j] == 0)
@@ -709,11 +449,11 @@ namespace DungeonGenerator
                         }
                         else
                         {
-                            //Random rn = new Random();
                             byte red = (Byte)rn.Next(0, 255);
                             byte green = (Byte)rn.Next(0, 255);
                             byte blue = (Byte)rn.Next(0, 255);
-                            int[] col = { red, green, blue };
+                            byte b = (Byte)rn.Next(0, 255);
+                            int[] col = { red, green, blue  };
                             colors.Add(roomMap[i][j], col);
                             buffer.PlotPixel(j, i, red, green, blue);
                         }
@@ -721,45 +461,7 @@ namespace DungeonGenerator
                     }
                 }
             }
-            buffer.save();
-        }
-
-        private void printRoomMap()
-        {
-            for (int i = 0; i < Y; i++)
-            {
-                for (int j = 0; j < X; j++)
-                {
-                    Console.Write(roomMap[i][j] + " ");
-
-                }
-                Console.WriteLine();
-            }
-
-        }
-
-        private void printMapRoom()
-        {
-            foreach(var r in room2s)
-            {
-                var tiles = r.getTiles();
-                foreach(var s in tiles)
-                {
-                    int indexX = parseMap(s)[0];
-                    int indexY = parseMap(s)[1];
-                    dMap[indexY][indexX] = '.';
-                }
-                var upperRight = r.getUpperRight();
-                int iX = parseMap(upperRight)[0];
-                int iY = parseMap(upperRight)[1];
-                dMap[iY][iX] = '!';
-                //dMap[iY][iX] = (char)(r.getID());
-                //Console.WriteLine(room2s.Count());
-                //System.Threading.Thread.Sleep(20);
-                /*Console.ReadKey();
-                print();*/
-            }
-            
+            buffer.saveColor();
         }
 
         public char[][] getMap()
@@ -777,8 +479,6 @@ namespace DungeonGenerator
         private void TimeOfExecutionEnd(System.Diagnostics.Stopwatch watch, string message)
         {
             Console.WriteLine("\t {0} \t time of execution {1}", message, watch.Elapsed);
-            //Program.input += (Program.passes + "\n");
-            //Program.time += (watch.ElapsedMilliseconds + "\n");
             watch.Reset();
             watch.Start();
 
@@ -821,15 +521,21 @@ namespace DungeonGenerator
                     }
                 }
             }
-            /*foreach(var r in rooms2)
+        }
+
+        //UNUSED
+
+        private void printRoomMap()
+        {
+            for (int i = 0; i < Y; i++)
             {
-                Console.Write("Room with ID: {0} has following borders", r.Value.getID());
-                foreach(var b in r.Value.getBorder2())
+                for (int j = 0; j < X; j++)
                 {
-                    Console.Write(b.Key + " ");
+                    Console.Write(roomMap[i][j] + " ");
+
                 }
                 Console.WriteLine();
-            }*/
+            }
 
         }
 
@@ -928,6 +634,15 @@ namespace DungeonGenerator
             }
 
         }
+        //private void deleteObsolent()
+        //{
+        //    foreach (var rm in room2s)
+        //    {
+
+        //        rm.cleanRoom(dMap);
+
+        //    }
+        //}
 
 
 
