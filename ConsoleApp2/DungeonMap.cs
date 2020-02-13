@@ -48,9 +48,10 @@ namespace DungeonGenerator
             findValid();
             TimeOfExecutionEnd(watch, "Finding Valid  ");
             showValid();
-            //TimeOfExecutionEnd(watch, "Showing Valid  ");
+            TimeOfExecutionEnd(watch, "Showing Valid  ");
             generateRooms();
             TimeOfExecutionEnd(watch, "Generating rooms");
+            TimeOfExecutionStart(watch);
             mapRooms();
             TimeOfExecutionEnd(watch, "Maping Rooms   ");
             //TODO : is room maping working correctly ?
@@ -63,8 +64,8 @@ namespace DungeonGenerator
             TimeOfExecutionEnd(watch, "Maping Borders  ");
             //floodFillTest();
             //printMapRoom();
-            //deleteObsolent();
-            //TimeOfExecutionEnd(watch, "Deleting Obsolent");
+            deleteObsolent();
+            TimeOfExecutionEnd(watch, "Deleting Obsolent");
             //fillRoomMap();
             //TimeOfExecutionEnd(watch, "Filling Room Map");
             //mapBorders();
@@ -390,10 +391,13 @@ namespace DungeonGenerator
             //randomly choosing room
             Random random = new Random();
             int count = rooms2.Count();
+            //Console.WriteLine("rooms2 count : {0} ", rooms2.Count());
 
             //purpose of the megaroom is to celect all conected room
             //Room2 megaRoom = rooms2.Values.ToList().ElementAt(random.Next(rooms2.Count));
-            Room2 megaRoom = rooms2[random.Next(rooms2.Count())];
+            int rand = random.Next(2, count +1);
+            //Console.WriteLine("Random number selected: {0}", rand);
+            Room2 megaRoom = rooms2[rand];
 
             //Console.WriteLine("Selected room with id {0}", megaRoom.getID());
 
@@ -403,9 +407,39 @@ namespace DungeonGenerator
                 rooms2.Remove(megaRoom.getID());
                 //Choose one random neighbour and conect
                 Room2 neighboutr = new Room2(); //empty constructor (ID is zero and all tiles are empty);
+                int roomToChange = 0;
+
+                if(megaRoom.getSurrounding().Count != 0)
+                {
+                    roomToChange = megaRoom.getSurrounding().First();
+                }
+                else
+                {
+                    Console.WriteLine("Error ocured during room maping");
+                    ImageBuffer buffer = new ImageBuffer(X, Y);
+                    for (int i = 0; i < Y; i++)
+                    {
+                        for (int j = 0; j < X; j++)
+                        {
+                            if (dMap[i][j] == 'o')
+                            {
+                                buffer.PlotPixel(j, i, 0, 0, 0);
+                            }
+                            else
+                            {
+                                
+                                buffer.PlotPixel(j, i, 255, 255, 255);
+                            }
+                        }
+                    }
+                    buffer.saveError();
+                    writeMap();
+                    break;
+                }
 
                 
-                int roomToChange = megaRoom.getSurrounding().Last();
+
+                //int roomToChange = megaRoom.getSurrounding().Last();
                 //Console.WriteLine(roomToChange);
 
                 //Get Tile
@@ -466,6 +500,9 @@ namespace DungeonGenerator
 
         private void mapRooms()
         {
+            //TODO - !!!!!!!room maping can be more effective - iterate throu raw map - in case current tile will be 1 - flood fill and save room
+
+
             /*new map room method - indexing similar then writing the indexes into room list
              *1. Create copy of the dMap byt in integers - walls are 0, floor has ID number of the room
              *2. Generate floor tiles based on id - if no negbourth tiles has id - create new ID else set id to the one of 
@@ -485,19 +522,38 @@ namespace DungeonGenerator
                     
                 }
             }
+            //int count = allTiles.Count();
             //int dictionaryCount = allTiles.Count();
+
             while (allTiles.Count()>0)
             {
                 //randomly choose tile and perform flood fill
-                List<string> toRemove = floodFill(ID, parseMap(allTiles.Keys.Last())[0], parseMap(allTiles.Keys.Last())[1], 1, roomMap);
+                var watch2 = new System.Diagnostics.Stopwatch();
+                //watch2.Start();
+                string toParse = allTiles.Keys.First();
+                int indexX = parseMap(toParse)[0];
+                int indexY = parseMap(toParse)[1];
+                //Console.WriteLine("ParsingCoordinates : {0}", watch2.Elapsed);
+                //watch2.Restart();
+
+                List<string> toRemove = floodFill(ID, indexX, indexY, 1, roomMap);
+                //Console.WriteLine("Flood Fill : {0}", watch2.Elapsed);
+
+                //watch2.Restart();
                 rooms2.Add(ID, new Room2(toRemove, ID));
+                //Console.WriteLine("Add rooms : {0}", watch2.Elapsed);
+                //watch2.Restart();
                 ID++;
-                foreach(var r in toRemove)
+
+                foreach (var r in toRemove)
                 {
+                    //count--;
                     allTiles.Remove(r);
                     //Console.Write(r + " ");
                     //dictionaryCount--;
                 }
+                //Console.WriteLine("Removing tiles : {0}", watch2.Elapsed);
+                //watch2.Stop();
                 //Console.WriteLine();
             }
 
@@ -721,6 +777,8 @@ namespace DungeonGenerator
         private void TimeOfExecutionEnd(System.Diagnostics.Stopwatch watch, string message)
         {
             Console.WriteLine("\t {0} \t time of execution {1}", message, watch.Elapsed);
+            //Program.input += (Program.passes + "\n");
+            //Program.time += (watch.ElapsedMilliseconds + "\n");
             watch.Reset();
             watch.Start();
 

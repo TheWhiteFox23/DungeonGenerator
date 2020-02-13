@@ -57,5 +57,20 @@ namespace DungeonGenerator
                 }
             }
         }
+
+        public void saveError()
+        {
+            unsafe
+            {
+                fixed (byte* ptr = buffer)
+                {
+                    using (Bitmap image = new Bitmap(X, Y, X * 4,
+                        System.Drawing.Imaging.PixelFormat.Format32bppRgb, new IntPtr(ptr)))
+                    {
+                        image.Save(@"error.png");
+                    }
+                }
+            }
+        }
     }
 }
